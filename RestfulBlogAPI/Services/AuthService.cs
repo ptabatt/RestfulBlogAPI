@@ -9,18 +9,28 @@ public class AuthService : IAuthService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration)
+    public AuthService(UserManager<ApplicationUser> userManager, 
+        SignInManager<ApplicationUser> signInManager, 
+        IConfiguration configuration,
+        ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<string> Register(RegisterDto registerDto)
     {
         // Implement logic to register a new user
-        var user = new ApplicationUser { UserName = registerDto.Username };
+        var user = new ApplicationUser 
+        { 
+            UserName = registerDto.Username,
+            FirstName = registerDto.FirstName,
+            LastName = registerDto.LastName
+        };
         var result = await _userManager.CreateAsync(user, registerDto.Password);
 
         if (result.Succeeded)
@@ -62,7 +72,6 @@ public class AuthService : IAuthService
             Subject = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, user.UserName),
-                // Add additional claims as needed
             }),
             Expires = DateTime.UtcNow.AddHours(1), // Token expiration time
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
